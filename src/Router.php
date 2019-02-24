@@ -4,6 +4,8 @@ declare(strict_types=1);
 namespace App;
 
 use Closure;
+use Psr\Http\Message\ServerRequestInterface;
+use Psr\Http\Message\ResponseInterface;
 
 /**
  * Class Router
@@ -15,15 +17,23 @@ final class Router
     /** @var array */
     private $routes;
 
+    /** @var Closure */
+    private $notFound;
+
     public function __construct()
     {
         $this->routes = [
-            'GET'      => [],
-            'POST'     => [],
-            'notFound' => function (): void {
-                echo '404 Not found';
-            },
+            'GET'  => [],
+            'POST' => [],
         ];
+
+        $this->notFound = function (ServerRequestInterface $request, ResponseInterface $response): ResponseInterface {
+            $response->getBody()->write('404 File not found');
+
+            return $response
+                ->withHeader('Content-Type', 'text/plain')
+                ->withStatus(404);
+        };
     }
 
     /**
@@ -78,29 +88,49 @@ final class Router
      */
     public function notFound(Closure $closure): self
     {
-        $this->routes['notFound'] = $closure;
+        $this->notFound = $closure;
 
         return $this;
     }
 
     /**
-     * @param string $method
-     * @param string $path
+     * @param ServerRequestInterface $request
      * @return Closure
      */
-    public function route(string $method, string $path): Closure
+    public function route(ServerRequestInterface &$request): Closure
     {
+        $method = $request->getMethod();
+        $path = $request->getUri()->getPath();
+
         if (!array_key_exists($method, $this->routes)) {
-            return $this->routes['notFound'];
+            return $this->notFound;
         }
 
         foreach ($this->routes[$method] as $pathPattern => $route) {
             $pattern = '@^' . $pathPattern . '$@';
-            if (preg_match($pattern, $path)) {
+            if (preg_match($pattern, $path, $matches)) {
+                foreach ($matches as $name => $value) {
+                    if (gettype($name) === 'string') {
+                        $request = $request->withAttribute($name, $value);
+                    }
+                }
+
                 return $route;
             }
         }
 
-        return $this->routes['notFound'];
+        return $this->notFound;
+    }
+
+    /**
+     * @param ServerRequestInterface $request
+     * @param ResponseInterface      $response
+     * @return ResponseInterface
+     */
+    public function run(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
+    {
+        $route = $this->route($request);
+
+        return $route($request, $response);
     }
 }

@@ -1,6 +1,11 @@
 <?php
 declare(strict_types=1);
 
+/**
+ * @var Zend\Diactoros\Response $response
+ * @var Zend\Diactoros\ServerRequest $request
+ */
+
 const ADMIN_LOGIN = 'admin';
 const ADMIN_PASSW = 'admin';
 
@@ -19,11 +24,11 @@ const TASKS_PER_PAGE = 3;
 
 $persist_storage = sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'tasks.json';
 
-$http_method = $_SERVER['REQUEST_METHOD'];
+$get = $request->getQueryParams();
 
-$sort_by = $_GET['sortBy'] ?? SORT_BY_CREATED_AT;
-$order_by = $_GET['orderBy'] ?? SORT_ORDER_DESC;
-$curr_page = (int)($_GET['page'] ?? 1);
+$sort_by = $get['sortBy'] ?? SORT_BY_CREATED_AT;
+$order_by = $get['orderBy'] ?? SORT_ORDER_DESC;
+$curr_page = (int)($get['page'] ?? 1);
 
 if (!file_exists($persist_storage)) {
     if (!file_put_contents($persist_storage, '[]', LOCK_EX)) {
@@ -36,4 +41,4 @@ if (!file_exists($persist_storage)) {
 $storage = file_get_contents($persist_storage);
 $tasks = json_decode($storage, true);
 
-$user_login = $_COOKIE['login'] ?? false;
+$user_login = $request->getCookieParams()['login'] ?? false;

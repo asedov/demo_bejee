@@ -1,6 +1,13 @@
 <?php
 declare(strict_types=1);
 
+/**
+ * @var Zend\Diactoros\Response $response
+ * @var Zend\Diactoros\ServerRequest $request
+ */
+
+ob_start();
+
 include __DIR__ . '/_header.php';
 
 echo <<<HTML
@@ -173,3 +180,7 @@ echo <<<HTML
 HTML;
 
 include __DIR__ . '/_footer.php';
+
+$response->getBody()->write(ob_get_clean());
+
+return $response;

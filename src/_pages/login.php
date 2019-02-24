@@ -1,14 +1,23 @@
 <?php
 declare(strict_types=1);
 
+/**
+ * @var Zend\Diactoros\Response $response
+ * @var Zend\Diactoros\ServerRequest $request
+ */
+
+ob_start();
+
 include __DIR__ . '/_header.php';
 
 $message = '';
 $login = null;
 
-if ('POST' === $http_method) {
-    $login = $_POST['login'] ?? null;
-    $passw = $_POST['password'] ?? null;
+if ('POST' === $request->getMethod()) {
+    $post = $request->getParsedBody();
+
+    $login = $post['login'] ?? null;
+    $passw = $post['password'] ?? null;
 
     if (ADMIN_LOGIN === $login && ADMIN_PASSW === $passw) {
         setcookie('login', $login);
@@ -47,3 +56,7 @@ echo <<<HTML
 HTML;
 
 include __DIR__ . '/_footer.php';
+
+$response->getBody()->write(ob_get_clean());
+
+return $response;

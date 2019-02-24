@@ -1,31 +1,42 @@
 <?php
 declare(strict_types=1);
 
+/**
+ * @var Zend\Diactoros\Response      $response
+ * @var Zend\Diactoros\ServerRequest $request
+ */
+
+ob_start();
+
 include __DIR__ . '/_header.php';
 
 if (!$user_login) {
-    header('HTTP/1.1 401 Unauthorized');
-    echo '401 Unauthorized';
-    exit();
+    echo <<<HTML
+        <div class="alert alert-warning" role="alert">
+            401 Unauthorized
+        </div>
+HTML;
+    include __DIR__ . '/_footer.php';
+    $response->getBody()->write(ob_get_clean());
+
+    return $response->withStatus(401);
 }
+
 if (ADMIN_LOGIN !== $user_login) {
-    header('HTTP/1.1 403 Forbidden');
-    echo '403 Forbidden';
-    exit();
+    echo <<<HTML
+        <div class="alert alert-warning" role="alert">
+            403 Forbidden
+        </div>
+HTML;
+    include __DIR__ . '/_footer.php';
+    $response->getBody()->write(ob_get_clean());
+
+    return $response->withStatus(403);
 }
 
-$task_id = '';
-
-if (preg_match('@^/tasks/(?<task_id>[a-z0-9]+)[/]?$@', $_SERVER['REDIRECT_URL'], $matches)) {
-    foreach ($matches as $name => $value) {
-        if (gettype($name) === 'string') {
-            $$name = $value;
-        }
-    }
-}
+$task_id = $request->getAttribute('taskId', '');
 
 if (!array_key_exists($task_id, $tasks)) {
-    header('HTTP/1.1 404 Not Found');
     echo <<<HTML
         <nav aria-label="breadcrumb">
           <ol class="breadcrumb">
@@ -38,13 +49,16 @@ if (!array_key_exists($task_id, $tasks)) {
         </div>
 HTML;
     include __DIR__ . '/_footer.php';
-    exit();
+
+    $response->getBody()->write(ob_get_clean());
+
+    return $response->withStatus(404);
 }
 
 $task = $tasks[$task_id];
 $status = '';
 
-if ('POST' === $http_method) {
+if ('POST' === $request->getMethod()) {
     $task['status'] = ($_POST['status'] ?? '0') === '1' ? TASK_STATUS_DONE : TASK_STATUS_NEW;
     $task['description'] = $_POST['description'] ?? '';
 
@@ -79,7 +93,7 @@ echo <<<HTML
         
         {$status}
 
-        <form action="?action=editTask&taskId={$task_id}&page={$curr_page}&sortBy={$sort_by}&orderBy={$order_by}" method="post" style="max-width: 400px">
+        <form action="/tasks/{$task_id}/?page={$curr_page}&sortBy={$sort_by}&orderBy={$order_by}" method="post" style="max-width: 400px">
           <div class="form-check">
             <input class="form-check-input" type="checkbox" name="status" value="1" id="status" {$stat}>
             <label class="form-check-label" for="status">Выполнено</label>
@@ -101,3 +115,7 @@ echo <<<HTML
 HTML;
 
 include __DIR__ . '/_footer.php';
+
+$response->getBody()->write(ob_get_clean());
+
+return $response;

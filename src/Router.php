@@ -26,14 +26,6 @@ final class Router
             'GET'  => [],
             'POST' => [],
         ];
-
-        $this->notFound = function (ServerRequestInterface $request, ResponseInterface $response): ResponseInterface {
-            $response->getBody()->write('404 File not found');
-
-            return $response
-                ->withHeader('Content-Type', 'text/plain')
-                ->withStatus(404);
-        };
     }
 
     /**

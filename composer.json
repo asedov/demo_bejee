@@ -35,7 +35,7 @@
         "phpmd": "phpmd src text cleancode,codesize,controversial,design,naming,unusedcode",
         "phan": "phan --allow-polyfill-parser",
         "psalm": "psalm",
-        "phpstan": "phpstan analyse src tests",
+        "phpstan": "phpstan analyse src tests --level 3",
         "lint": [
             "@phpcs",
             "@phpmd"

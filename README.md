@@ -28,6 +28,11 @@ composer test
 
 # Changelog
 
+## [0.3.0](https://github.com/asedov/demo_bejee/tree/v0.3.0)
+### Added
+- Применили [Model-View-Controller](https://ru.wikipedia.org/wiki/Model-View-Controller);
+
+
 ## [0.2.0](https://github.com/asedov/demo_bejee/tree/v0.2.0)
 ### Added
 - [PSR-7: HTTP message interfaces](https://www.php-fig.org/psr/psr-7/);

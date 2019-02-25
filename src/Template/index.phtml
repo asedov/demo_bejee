@@ -1,0 +1,106 @@
+<?php
+declare(strict_types=1);
+
+use App\Controller\IndexController as Idx;
+
+?>
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="/">Home</a></li>
+    </ol>
+</nav>
+
+<?php if (!empty($tasks)) { ?>
+    <table class="table table-striped">
+        <thead>
+        <tr>
+            <th scope="col">
+                <?php if ($sort_by === Idx::SORT_BY_STATUS) { ?>
+                    <?php if ($order_by === Idx::SORT_ORDER_DESC) { ?>
+                        <a href="/?page=1&sortBy=<?= Idx::SORT_BY_STATUS ?>&orderBy=<?= Idx::SORT_ORDER_ASK ?>">Статус &#9660;</a>
+                    <?php } else { ?>
+                        <a href="/?page=1&sortBy=<?= Idx::SORT_BY_STATUS ?>&orderBy=<?= Idx::SORT_ORDER_DESC ?>">Статус &#9650;</a>
+                    <?php } ?>
+                <?php } else { ?>
+                    <a href="/?page=1&sortBy=<?= Idx::SORT_BY_STATUS ?>&orderBy=<?= Idx::SORT_ORDER_ASK ?>">Статус</a>
+                <?php } ?>
+            </th>
+            <th scope="col">
+                <?php if ($sort_by === Idx::SORT_BY_USER_NAME) { ?>
+                    <?php if ($order_by === Idx::SORT_ORDER_DESC) { ?>
+                        <a href="/?page=1&sortBy=<?= Idx::SORT_BY_USER_NAME ?>&orderBy=<?= Idx::SORT_ORDER_ASK ?>">Имя &#9660;</a>
+                    <?php } else { ?>
+                        <a href="/?page=1&sortBy=<?= Idx::SORT_BY_USER_NAME ?>&orderBy=<?= Idx::SORT_ORDER_DESC ?>">Имя &#9650;</a>
+                    <?php } ?>
+                <?php } else { ?>
+                    <a href="/?page=1&sortBy=<?= Idx::SORT_BY_USER_NAME ?>&orderBy=<?= Idx::SORT_ORDER_ASK ?>">Имя</a>
+                <?php } ?>
+            </th>
+            <th scope="col">
+                <?php if ($sort_by === Idx::SORT_BY_USER_EMAIL) { ?>
+                    <?php if ($order_by === Idx::SORT_ORDER_DESC) { ?>
+                        <a href="/?page=1&sortBy=<?= Idx::SORT_BY_USER_EMAIL ?>&orderBy=<?= Idx::SORT_ORDER_ASK ?>">E-mail &#9660;</a>
+                    <?php } else { ?>
+                        <a href="/?page=1&sortBy=<?= Idx::SORT_BY_USER_EMAIL ?>&orderBy=<?= Idx::SORT_ORDER_DESC ?>">E-mail &#9650;</a>
+                    <?php } ?>
+                <?php } else { ?>
+                    <a href="/?page=1&sortBy=<?= Idx::SORT_BY_USER_EMAIL ?>&orderBy=<?= Idx::SORT_ORDER_ASK ?>">E-mail</a>
+                <?php } ?>
+            </th>
+            <th scope="col">Описание</th>
+            <?php if ($userLogin === 'admin') { ?>
+                <th scope="col">Редактировать</th>
+            <?php } ?>
+        </tr>
+        </thead>
+        <tbody>
+        <?php foreach ($tasks as $task) {
+            /** @var App\Entity\Task $task */ ?>
+            <tr>
+                <td><input type="checkbox" disabled <?= $task->getStatus() ? 'checked' : '' ?>/></td>
+                <td><?= htmlspecialchars($task->getUserName(), ENT_HTML5, 'UTF-8') ?></td>
+                <td><?= htmlspecialchars($task->getUserEmail(), ENT_HTML5, 'UTF-8') ?></td>
+                <td><?= htmlspecialchars($task->getDescription(), ENT_HTML5, 'UTF-8') ?></td>
+                <?php if ($userLogin === 'admin') { ?>
+                    <td>
+                        [<a href="/tasks/<?= $task->getId() ?>/?page=<?= $curr_page ?>&orderBy=<?= $order_by ?>&sortBy=<?= $sort_by ?>">редактировать</a>]
+                    </td>
+                <?php } ?>
+            </tr>
+        <?php } ?>
+        </tbody>
+    </table>
+    <nav aria-label="Page navigation example">
+        <ul class="pagination">
+            <?php for ($page = 1; $page <= $pages; $page++) { ?>
+                <?php if ($curr_page === $page) { ?>
+                    <li class="page-item active" aria-current="page">
+                        <a class="page-link" href="/?page=<?= $page ?>&sortBy=<?= $sort_by ?>&orderBy=<?= $order_by ?>"><?= $page ?><span class="sr-only">(current)</span></a>
+                    </li>
+                <?php } else { ?>
+                    <li class="page-item"><a class="page-link" href="/?page=<?= $page ?>&sortBy=<?= $sort_by ?>&orderBy=<?= $order_by ?>"><?= $page ?></a></li>
+                <?php } ?>
+            <?php } ?>
+        </ul>
+    </nav>
+<?php } else { ?>
+    <div>Нет задач</div>
+<?php } ?>
+
+<hr/>
+
+<form action="/tasks" method="post" style="max-width: 400px">
+    <div class="form-group">
+        <label for="user_name">Имя</label>
+        <input type="text" class="form-control" id="user_name" placeholder="Имя" name="user_name">
+    </div>
+    <div class="form-group">
+        <label for="user_email">E-mail</label>
+        <input type="email" class="form-control" id="user_email" placeholder="E-mail" name="user_email">
+    </div>
+    <div class="form-group">
+        <label for="description">Описание</label>
+        <textarea class="form-control" id="description" rows="3" placeholder="Описание" name="description"></textarea>
+    </div>
+    <button type="submit" class="btn btn-primary">Добавить</button>
+</form>
